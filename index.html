@@ -296,6 +296,7 @@ const KEY = 't1900_web_v1';
 const NOW = Date.now();
 let rangeFrom = 1, rangeTo = 1900;
 let queue = [], curIdx = 0, doneCount = 0, isFlipped = false;
+let flipTimeout;
 
 function loadSRS() { try { return JSON.parse(localStorage.getItem(KEY)||'{}'); } catch(e) { return {}; } }
 function saveSRS(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e) {} }
@@ -350,6 +351,7 @@ function updateStats() {
 
 function showCard(w) {
   isFlipped = false;
+  clearTimeout(flipTimeout);
   document.getElementById('card-inner').classList.remove('flipped');
   document.getElementById('grade-row').style.display = 'none';
   document.getElementById('c-no').textContent     = w[0]+'番';
@@ -367,8 +369,9 @@ function showCard(w) {
 function flipCard() {
   if (isFlipped) return;
   isFlipped = true;
+  clearTimeout(flipTimeout);
   document.getElementById('card-inner').classList.add('flipped');
-  setTimeout(() => {
+  flipTimeout = setTimeout(() => {
     document.getElementById('grade-row').style.display = 'grid';
   }, 225);
 }
