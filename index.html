@@ -350,7 +350,14 @@ function updateStats() {
 
 function showCard(w) {
   isFlipped = false;
-  document.getElementById('card-inner').classList.remove('flipped');
+  const inner = document.getElementById('card-inner');
+  
+  // アニメーションを一時的に無効化して即座に表面に戻す（答えのチラ見え防止）
+  inner.style.transition = 'none';
+  inner.classList.remove('flipped');
+  void inner.offsetWidth; // ブラウザに変更を即時反映させるためのハック
+  inner.style.transition = ''; // アニメーション設定を元に戻す
+
   document.getElementById('grade-row').style.display = 'none';
   document.getElementById('c-no').textContent     = w[0]+'番';
   document.getElementById('c-part').textContent   = w[2];
