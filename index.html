@@ -196,34 +196,72 @@
   .d-future { background: var(--bg2); color: var(--text2); }
   .list-more { font-size: 12px; color: var(--text2); text-align: center; padding: 10px; }
 
-  /* ── 音声ボタン ── */
-  .audio-row {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-  }
+  /* 音声ボタン */
   .speak-btn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 7px 20px;
+    padding: 6px 16px;
     border-radius: 20px;
     border: 1.5px solid var(--border);
     background: var(--bg2);
     color: var(--text2);
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     font-family: inherit;
+    margin-top: 10px;
     transition: all 0.15s;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
   }
-  .speak-btn:active { transform: scale(0.95); }
   .speak-btn.speaking {
     background: var(--blue-bg);
     color: var(--blue-text);
     border-color: var(--blue);
   }
+  /* キーボードヒント */
+  .key-hint {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .key-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+  kbd {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    font-size: 11px;
+    font-family: monospace;
+    line-height: 1.6;
+  }
+  /* 自動発音トグル */
+  .auto-speak-wrap {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text2);
+    user-select: none;
+  }
+  .toggle-switch { position: relative; width: 36px; height: 20px; cursor: pointer; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; border-radius: 20px;
+    background: var(--border); transition: 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #fff; left: 3px; top: 3px; transition: 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-slider { background: var(--blue); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
 </style>
 </head>
 <body>
@@ -249,6 +287,13 @@
   </div>
   <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
 
+  <div class="auto-speak-wrap">
+    <span>表示時に自動発音</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="auto-speak-toggle" checked>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
   <div id="card-area">
     <div class="card-scene" onclick="flipCard()">
       <div class="card-inner" id="card-inner">
@@ -257,18 +302,13 @@
           <span class="card-part" id="c-part"></span>
           <div class="card-word" id="c-word"></div>
           <div class="card-hint">👆 タップして答えを確認</div>
-          <div class="audio-row">
-            <button class="speak-btn" id="speak-front" onclick="speakWord(event)">🔊 発音</button>
-          </div>
+          <button class="speak-btn" id="speak-btn" onclick="speakWord(event)">🔊 もう一度聞く</button>
         </div>
         <div class="card-face back">
           <span class="card-no" id="c-no-b"></span>
           <span class="card-part" id="c-part-b"></span>
           <div class="card-word" id="c-word-b" style="font-size:22px;margin-bottom:8px"></div>
           <div class="card-meaning" id="c-mean"></div>
-          <div class="audio-row">
-            <button class="speak-btn" id="speak-back" onclick="speakWord(event)">🔊 発音</button>
-          </div>
         </div>
       </div>
     </div>
@@ -277,6 +317,14 @@
       <button class="gb hard"  onclick="grade(1)">難しい<span class="sub" id="g-hard"></span></button>
       <button class="gb good"  onclick="grade(2)">良い<span class="sub" id="g-good"></span></button>
       <button class="gb easy"  onclick="grade(3)">簡単<span class="sub" id="g-easy"></span></button>
+    </div>
+    <div class="key-hint">
+      <span class="key-item"><kbd>Space</kbd> めくる</span>
+      <span class="key-item"><kbd>1</kbd> もう一度</span>
+      <span class="key-item"><kbd>2</kbd> 難しい</span>
+      <span class="key-item"><kbd>3</kbd> 良い</span>
+      <span class="key-item"><kbd>4</kbd> 簡単</span>
+      <span class="key-item"><kbd>P</kbd> 発音</span>
     </div>
   </div>
 
@@ -384,7 +432,6 @@ function updateStats() {
 }
 
 function showCard(w) {
-  stopSpeech();
   isFlipped = false;
   const inner = document.getElementById('card-inner');
   
@@ -405,6 +452,10 @@ function showCard(w) {
   document.getElementById('g-hard').textContent   = '2〜3日後';
   document.getElementById('g-good').textContent   = '7日後';
   document.getElementById('g-easy').textContent   = '14日後';
+  stopSpeech();
+  if (document.getElementById('auto-speak-toggle').checked) {
+    setTimeout(function() { speakWord(null); }, 200);
+  }
 }
 
 function flipCard() {
@@ -498,32 +549,21 @@ if (queue.length === 0) {
   showCard(queue[0]);
 }
 
-/* ============ Web Speech API TTS ============ */
-var ttsActive = false;   // letではなくvarでTDZを回避
+/* ===== Web Speech API TTS ===== */
+var ttsActive = false;
 
 function stopSpeech() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   ttsActive = false;
-  document.querySelectorAll('.speak-btn').forEach(function(b) {
-    b.classList.remove('speaking');
-  });
+  var btn = document.getElementById('speak-btn');
+  if (btn) btn.classList.remove('speaking');
 }
 
 function speakWord(e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
+  if (!window.speechSynthesis) return;
 
-  if (!window.speechSynthesis) {
-    alert('このブラウザは音声合成に対応していません。\nChrome / Edge / Safari をお使いください。');
-    return;
-  }
-
-  var btn = e.currentTarget;
-
-  // 再生中に同ボタンを押したら停止
-  if (ttsActive && btn.classList.contains('speaking')) {
-    stopSpeech();
-    return;
-  }
+  if (e && ttsActive) { stopSpeech(); return; }
 
   stopSpeech();
 
@@ -535,42 +575,64 @@ function speakWord(e) {
   utt.rate  = 0.85;
   utt.pitch = 1.0;
 
-  // 英語音声を優先選択
   var voices = window.speechSynthesis.getVoices();
-  var enVoice = null;
   for (var i = 0; i < voices.length; i++) {
-    if (voices[i].lang === 'en-US') { enVoice = voices[i]; break; }
+    if (voices[i].lang === 'en-US') { utt.voice = voices[i]; break; }
   }
-  if (!enVoice) {
+  if (!utt.voice) {
     for (var i = 0; i < voices.length; i++) {
-      if (voices[i].lang.startsWith('en')) { enVoice = voices[i]; break; }
+      if (voices[i].lang.startsWith('en')) { utt.voice = voices[i]; break; }
     }
   }
-  if (enVoice) utt.voice = enVoice;
 
   ttsActive = true;
-  btn.classList.add('speaking');
+  var btn = document.getElementById('speak-btn');
+  if (btn) btn.classList.add('speaking');
 
-  utt.onend = function() {
+  utt.onend = utt.onerror = function() {
     ttsActive = false;
-    btn.classList.remove('speaking');
-  };
-  utt.onerror = function() {
-    ttsActive = false;
-    btn.classList.remove('speaking');
+    var b = document.getElementById('speak-btn');
+    if (b) b.classList.remove('speaking');
   };
 
   window.speechSynthesis.speak(utt);
 }
 
-// 音声リストをプリロード（Chrome初回遅延対策）
 if (window.speechSynthesis) {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() {
     window.speechSynthesis.getVoices();
   };
 }
-/* =========================================== */
+/* ============================== */
+
+/* ===== キーボード操作 ===== */
+document.addEventListener('keydown', function(e) {
+  var tag = document.activeElement ? document.activeElement.tagName : '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+  var studyView = document.getElementById('study-view');
+  if (!studyView || studyView.style.display === 'none') return;
+
+  switch (e.key) {
+    case ' ':
+    case 'Enter':
+      e.preventDefault();
+      if (!isFlipped) flipCard();
+      break;
+    case '1':
+      if (isFlipped) grade(0); break;
+    case '2':
+      if (isFlipped) grade(1); break;
+    case '3':
+      if (isFlipped) grade(2); break;
+    case '4':
+      if (isFlipped) grade(3); break;
+    case 'p': case 'P':
+      speakWord(null); break;
+  }
+});
+/* ========================= */
 </script>
 </body>
 </html>
