@@ -470,6 +470,11 @@ function grade(q) {
   const w = queue[curIdx];
   SRS[w[0]] = sm2(getCard(w[0]), q);
   saveSRS(SRS);
+ 
+   if (q === 0) {
+    queue.push(w);
+  }
+
   doneCount++; curIdx++;
   updateStats();
   if (curIdx >= queue.length) {
