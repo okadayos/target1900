@@ -449,9 +449,15 @@ function showCard(w) {
   document.getElementById('c-part-b').textContent = w[2];
   document.getElementById('c-word-b').textContent = w[1];
   document.getElementById('c-mean').textContent   = w[3];
-  document.getElementById('g-hard').textContent   = '2〜3日後';
-  document.getElementById('g-good').textContent   = '7日後';
-  document.getElementById('g-easy').textContent   = '14日後';
+  // 🌟【変更】実際の計算に基づいた正しい日数を表示する
+  const currentCard = getCard(w[0]);
+  const calcDays = (q) => {
+    const nextInterval = sm2(currentCard, q).interval;
+    return nextInterval === 1 ? '明日' : nextInterval + '日後';
+  };
+  document.getElementById('g-hard').textContent   = calcDays(1);
+  document.getElementById('g-good').textContent   = calcDays(2);
+  document.getElementById('g-easy').textContent   = calcDays(3);
   stopSpeech();
   if (document.getElementById('auto-speak-toggle').checked) {
     setTimeout(function() { speakWord(null); }, 200);
