@@ -196,72 +196,108 @@
   .d-future { background: var(--bg2); color: var(--text2); }
   .list-more { font-size: 12px; color: var(--text2); text-align: center; padding: 10px; }
 
-  /* 音声ボタン */
-  .speak-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 16px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
+  /* ── 同期ビュー ── */
+  .sync-card {
     background: var(--bg2);
-    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 12px;
+  }
+  .sync-card-title {
     font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .sync-status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background .3s;
+  }
+  .status-dot.connected  { background: #4caf88; box-shadow: 0 0 6px #4caf8888; }
+  .status-dot.syncing    { background: #ffb74d; }
+  .status-dot.error      { background: #ef5350; }
+  .sync-input-row {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .sync-input-row input {
+    flex: 1; min-width: 140px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    font-family: monospace;
+  }
+  .sync-input-row input::placeholder { color: var(--text2); opacity: .6; }
+  .sync-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
     cursor: pointer;
     font-family: inherit;
-    margin-top: 10px;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    transition: all .15s;
+    white-space: nowrap;
   }
-  .speak-btn.speaking {
-    background: var(--blue-bg);
-    color: var(--blue-text);
+  .sync-btn:hover { background: var(--border); }
+  .sync-btn.primary {
+    background: var(--blue);
     border-color: var(--blue);
+    color: #fff;
   }
-  /* キーボードヒント */
-  .key-hint {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-  .key-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
-  kbd {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--text2);
+  .sync-btn.primary:hover { opacity: .85; }
+  .sync-btn.danger { color: #ef5350; border-color: rgba(239,83,80,.4); }
+  .sync-note {
     font-size: 11px;
-    font-family: monospace;
+    color: var(--text2);
     line-height: 1.6;
+    margin-top: 6px;
   }
-  /* 自動発音トグル */
-  .auto-speak-wrap {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
+  .sync-action-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;
+  }
+  details.sync-details summary {
     font-size: 12px;
     color: var(--text2);
+    cursor: pointer;
+    padding: 4px 0;
     user-select: none;
   }
-  .toggle-switch { position: relative; width: 36px; height: 20px; cursor: pointer; }
-  .toggle-switch input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute; inset: 0; border-radius: 20px;
-    background: var(--border); transition: 0.2s;
+  .config-grid {
+    display: flex; flex-direction: column; gap: 6px; margin-top: 8px;
   }
-  .toggle-slider::before {
-    content: ''; position: absolute;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: #fff; left: 3px; top: 3px; transition: 0.2s;
+  .config-grid input {
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    font-family: monospace;
   }
-  .toggle-switch input:checked + .toggle-slider { background: var(--blue); }
-  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+  .sync-log {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 6px;
+    min-height: 16px;
+  }
 </style>
 </head>
 <body>
@@ -275,6 +311,7 @@
   <button class="active" onclick="switchView('study')" id="btn-study">📚 学習</button>
   <button onclick="switchView('range')" id="btn-range">⚙️ 範囲</button>
   <button onclick="switchView('list')" id="btn-list">📋 一覧</button>
+  <button onclick="switchView('sync')" id="btn-sync">☁ 同期</button>
 </nav>
 
 <!-- 学習ビュー -->
@@ -287,13 +324,6 @@
   </div>
   <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
 
-  <div class="auto-speak-wrap">
-    <span>表示時に自動発音</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="auto-speak-toggle" checked>
-      <span class="toggle-slider"></span>
-    </label>
-  </div>
   <div id="card-area">
     <div class="card-scene" onclick="flipCard()">
       <div class="card-inner" id="card-inner">
@@ -302,7 +332,6 @@
           <span class="card-part" id="c-part"></span>
           <div class="card-word" id="c-word"></div>
           <div class="card-hint">👆 タップして答えを確認</div>
-          <button class="speak-btn" id="speak-btn" onclick="speakWord(event)">🔊 もう一度聞く</button>
         </div>
         <div class="card-face back">
           <span class="card-no" id="c-no-b"></span>
@@ -317,14 +346,6 @@
       <button class="gb hard"  onclick="grade(1)">難しい<span class="sub" id="g-hard"></span></button>
       <button class="gb good"  onclick="grade(2)">良い<span class="sub" id="g-good"></span></button>
       <button class="gb easy"  onclick="grade(3)">簡単<span class="sub" id="g-easy"></span></button>
-    </div>
-    <div class="key-hint">
-      <span class="key-item"><kbd>Space</kbd> めくる</span>
-      <span class="key-item"><kbd>1</kbd> もう一度</span>
-      <span class="key-item"><kbd>2</kbd> 難しい</span>
-      <span class="key-item"><kbd>3</kbd> 良い</span>
-      <span class="key-item"><kbd>4</kbd> 簡単</span>
-      <span class="key-item"><kbd>P</kbd> 発音</span>
     </div>
   </div>
 
@@ -452,10 +473,6 @@ function showCard(w) {
   document.getElementById('g-hard').textContent   = '2〜3日後';
   document.getElementById('g-good').textContent   = '7日後';
   document.getElementById('g-easy').textContent   = '14日後';
-  stopSpeech();
-  if (document.getElementById('auto-speak-toggle').checked) {
-    setTimeout(function() { speakWord(null); }, 200);
-  }
 }
 
 function flipCard() {
@@ -511,7 +528,7 @@ function setRange(f,t) {
 }
 
 function switchView(v) {
-  ['study','range','list'].forEach(n => {
+  ['study','range','list','sync'].forEach(n => {
     document.getElementById(n+'-view').style.display = v===n ? 'block' : 'none';
     document.getElementById('btn-'+n).classList.toggle('active', v===n);
   });
@@ -549,90 +566,273 @@ if (queue.length === 0) {
   showCard(queue[0]);
 }
 
-/* ===== Web Speech API TTS ===== */
-var ttsActive = false;
+/* ============================================================
+   Firebase リアルタイム同期
+   ============================================================ */
 
-function stopSpeech() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  ttsActive = false;
-  var btn = document.getElementById('speak-btn');
-  if (btn) btn.classList.remove('speaking');
+var fbApp = null;
+var fbDb  = null;
+var fbUnsubscribe = null;
+var syncKey = localStorage.getItem('t1900_syncKey') || '';
+
+/* --- Firebase 設定を保存/読み込み --- */
+function saveFirebaseConfig() {
+  var cfg = {
+    apiKey:    document.getElementById('cfg-apiKey').value.trim(),
+    projectId: document.getElementById('cfg-projectId').value.trim(),
+    appId:     document.getElementById('cfg-appId').value.trim()
+  };
+  if (!cfg.apiKey || !cfg.projectId || !cfg.appId) {
+    setSyncStatus('error', 'すべての項目を入力してください');
+    return;
+  }
+  localStorage.setItem('t1900_fbConfig', JSON.stringify(cfg));
+  setSyncStatus('', '設定を保存しました。接続コードを入力して接続してください。');
+  initFirebase();
 }
 
-function speakWord(e) {
-  if (e) e.stopPropagation();
-  if (!window.speechSynthesis) return;
+function loadFirebaseConfig() {
+  try { return JSON.parse(localStorage.getItem('t1900_fbConfig') || 'null'); }
+  catch(e) { return null; }
+}
 
-  if (e && ttsActive) { stopSpeech(); return; }
-
-  stopSpeech();
-
-  var word = document.getElementById('c-word').textContent.trim();
-  if (!word) return;
-
-  var utt = new SpeechSynthesisUtterance(word);
-  utt.lang  = 'en-US';
-  utt.rate  = 0.85;
-  utt.pitch = 1.0;
-
-  var voices = window.speechSynthesis.getVoices();
-  for (var i = 0; i < voices.length; i++) {
-    if (voices[i].lang === 'en-US') { utt.voice = voices[i]; break; }
-  }
-  if (!utt.voice) {
-    for (var i = 0; i < voices.length; i++) {
-      if (voices[i].lang.startsWith('en')) { utt.voice = voices[i]; break; }
+function initFirebase() {
+  var cfg = loadFirebaseConfig();
+  if (!cfg) return false;
+  try {
+    if (typeof firebase === 'undefined') {
+      setSyncStatus('error', 'Firebase SDKが読み込まれていません');
+      return false;
     }
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:    cfg.apiKey,
+        authDomain: cfg.projectId + '.firebaseapp.com',
+        projectId: cfg.projectId,
+        appId:     cfg.appId
+      });
+    }
+    fbApp = firebase.app();
+    fbDb  = firebase.firestore();
+    return true;
+  } catch(e) {
+    setSyncStatus('error', 'Firebase初期化エラー: ' + e.message);
+    return false;
   }
-
-  ttsActive = true;
-  var btn = document.getElementById('speak-btn');
-  if (btn) btn.classList.add('speaking');
-
-  utt.onend = utt.onerror = function() {
-    ttsActive = false;
-    var b = document.getElementById('speak-btn');
-    if (b) b.classList.remove('speaking');
-  };
-
-  window.speechSynthesis.speak(utt);
 }
 
-if (window.speechSynthesis) {
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged = function() {
-    window.speechSynthesis.getVoices();
-  };
+/* --- ステータス表示 --- */
+function setSyncStatus(state, msg) {
+  var dot  = document.getElementById('status-dot');
+  var text = document.getElementById('status-text');
+  var log  = document.getElementById('sync-log');
+  if (!dot) return;
+  dot.className = 'status-dot' + (state ? ' ' + state : '');
+  if (text) text.textContent =
+    state === 'connected' ? '接続中 — ' + syncKey :
+    state === 'syncing'   ? '同期中...' :
+    state === 'error'     ? '⚠ エラー' : '未設定';
+  if (log && msg) log.textContent = msg;
 }
-/* ============================== */
 
-/* ===== キーボード操作 ===== */
-document.addEventListener('keydown', function(e) {
-  var tag = document.activeElement ? document.activeElement.tagName : '';
-  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
-  var studyView = document.getElementById('study-view');
-  if (!studyView || studyView.style.display === 'none') return;
-
-  switch (e.key) {
-    case ' ':
-    case 'Enter':
-      e.preventDefault();
-      if (!isFlipped) flipCard();
-      break;
-    case '1':
-      if (isFlipped) grade(0); break;
-    case '2':
-      if (isFlipped) grade(1); break;
-    case '3':
-      if (isFlipped) grade(2); break;
-    case '4':
-      if (isFlipped) grade(3); break;
-    case 'p': case 'P':
-      speakWord(null); break;
+/* --- 同期コードで接続 --- */
+function connectSync() {
+  var key = document.getElementById('sync-key-input').value.trim();
+  if (!key) { setSyncStatus('error', '同期コードを入力してください'); return; }
+  if (!initFirebase()) {
+    setSyncStatus('error', 'Firebase設定が必要です（下の⚙をクリック）');
+    return;
   }
-});
-/* ========================= */
+  syncKey = key;
+  localStorage.setItem('t1900_syncKey', syncKey);
+  startRealtimeSync();
+}
+
+/* --- リアルタイムリスナー開始 --- */
+function startRealtimeSync() {
+  if (!fbDb || !syncKey) return;
+  if (fbUnsubscribe) fbUnsubscribe();  // 既存リスナーを解除
+
+  setSyncStatus('syncing', '接続中...');
+
+  var docRef = fbDb.collection('t1900_srs').doc(syncKey);
+
+  fbUnsubscribe = docRef.onSnapshot(function(doc) {
+    if (doc.exists) {
+      var remote = doc.data();
+      if (remote && remote.srs) {
+        var remoteSRS = JSON.parse(remote.srs);
+        var merged = mergeSRS(SRS, remoteSRS);
+        SRS = merged;
+        saveSRS(SRS);
+        updateStats();
+        setSyncStatus('connected', '同期済 — ' + new Date().toLocaleTimeString('ja-JP'));
+      }
+    } else {
+      // クラウドにデータなし → ローカルをアップロード
+      pushToCloud();
+    }
+  }, function(err) {
+    setSyncStatus('error', 'リスナーエラー: ' + err.message);
+  });
+
+  setSyncStatus('connected', '接続しました');
+}
+
+/* --- SRSデータをマージ（repが多い方を採用）--- */
+function mergeSRS(local, remote) {
+  var merged = {};
+  var allKeys = new Set(Object.keys(local).concat(Object.keys(remote)));
+  allKeys.forEach(function(id) {
+    var l = local[id];
+    var r = remote[id];
+    if (!l) { merged[id] = r; }
+    else if (!r) { merged[id] = l; }
+    else { merged[id] = (r.rep > l.rep) ? r : l; }
+  });
+  return merged;
+}
+
+/* --- クラウドにアップロード --- */
+function pushToCloud() {
+  if (!fbDb || !syncKey) {
+    setSyncStatus('error', '先に接続してください');
+    return;
+  }
+  setSyncStatus('syncing', 'アップロード中...');
+  fbDb.collection('t1900_srs').doc(syncKey).set({
+    srs: JSON.stringify(SRS),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    setSyncStatus('connected', '保存完了 — ' + new Date().toLocaleTimeString('ja-JP'));
+  }).catch(function(e) {
+    setSyncStatus('error', 'アップロード失敗: ' + e.message);
+  });
+}
+
+/* --- クラウドから読み込み --- */
+function pullFromCloud() {
+  if (!fbDb || !syncKey) {
+    setSyncStatus('error', '先に接続してください');
+    return;
+  }
+  setSyncStatus('syncing', '読み込み中...');
+  fbDb.collection('t1900_srs').doc(syncKey).get().then(function(doc) {
+    if (doc.exists && doc.data().srs) {
+      var remoteSRS = JSON.parse(doc.data().srs);
+      SRS = mergeSRS(SRS, remoteSRS);
+      saveSRS(SRS);
+      updateStats();
+      setSyncStatus('connected', '読み込み完了 — ' + new Date().toLocaleTimeString('ja-JP'));
+    } else {
+      setSyncStatus('connected', 'クラウドにデータがありません');
+    }
+  }).catch(function(e) {
+    setSyncStatus('error', '読み込み失敗: ' + e.message);
+  });
+}
+
+/* --- 接続解除 --- */
+function disconnectSync() {
+  if (fbUnsubscribe) { fbUnsubscribe(); fbUnsubscribe = null; }
+  syncKey = '';
+  localStorage.removeItem('t1900_syncKey');
+  var inp = document.getElementById('sync-key-input');
+  if (inp) inp.value = '';
+  setSyncStatus('', '接続を解除しました');
+}
+
+/* --- grade後に自動プッシュ（デバウンス30秒）--- */
+var pushTimer = null;
+var _originalSaveSRS = saveSRS;
+saveSRS = function(d) {
+  _originalSaveSRS(d);
+  if (fbDb && syncKey) {
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushToCloud, 30000);  // 30秒後に自動アップロード
+  }
+};
+
+/* --- ページ読み込み時に自動接続 --- */
+(function() {
+  var savedKey = localStorage.getItem('t1900_syncKey');
+  var inp = document.getElementById('sync-key-input');
+  if (inp && savedKey) inp.value = savedKey;
+  var cfg = loadFirebaseConfig();
+  if (cfg) {
+    var apiKeyEl = document.getElementById('cfg-apiKey');
+    var pidEl    = document.getElementById('cfg-projectId');
+    var appIdEl  = document.getElementById('cfg-appId');
+    if (apiKeyEl) apiKeyEl.value = cfg.apiKey    || '';
+    if (pidEl)    pidEl.value    = cfg.projectId || '';
+    if (appIdEl)  appIdEl.value  = cfg.appId     || '';
+  }
+  if (savedKey && initFirebase()) {
+    startRealtimeSync();
+  }
+})();
+/* ============================================================ */
 </script>
+<div id="sync-view" class="container" style="display:none">
+
+  <!-- ステータス -->
+  <div class="sync-card">
+    <div class="sync-card-title">接続状態</div>
+    <div class="sync-status-row">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">未設定</span>
+    </div>
+    <div class="sync-log" id="sync-log"></div>
+  </div>
+
+  <!-- 同期コード -->
+  <div class="sync-card">
+    <div class="sync-card-title">同期コード</div>
+    <div class="sync-input-row">
+      <input type="text" id="sync-key-input" placeholder="例: yamada_taro_2024" autocomplete="off" spellcheck="false">
+      <button class="sync-btn primary" onclick="connectSync()">接続</button>
+    </div>
+    <p class="sync-note">
+      📱 同じコードをすべてのデバイスで入力すると進捗が同期されます。<br>
+      ⚠️ 推測されにくいコードを使ってください（他人が同じコードを使うと上書きされます）。
+    </p>
+  </div>
+
+  <!-- 操作ボタン -->
+  <div class="sync-card">
+    <div class="sync-card-title">データ操作</div>
+    <div class="sync-action-row">
+      <button class="sync-btn primary" onclick="pushToCloud()">↑ クラウドに保存</button>
+      <button class="sync-btn" onclick="pullFromCloud()">↓ クラウドから読み込み</button>
+      <button class="sync-btn danger" onclick="disconnectSync()">接続解除</button>
+    </div>
+    <p class="sync-note">「クラウドに保存」は手動アップロードです。学習中は自動保存されます。</p>
+  </div>
+
+  <!-- Firebase設定 -->
+  <div class="sync-card">
+    <details class="sync-details">
+      <summary>⚙ Firebase設定（初回のみ必要）</summary>
+      <div class="config-grid">
+        <input type="text" id="cfg-apiKey"    placeholder="apiKey"    autocomplete="off">
+        <input type="text" id="cfg-projectId" placeholder="projectId" autocomplete="off">
+        <input type="text" id="cfg-appId"     placeholder="appId"     autocomplete="off">
+        <button class="sync-btn primary" onclick="saveFirebaseConfig()">設定を保存</button>
+      </div>
+      <p class="sync-note" style="margin-top:8px">
+        <strong>設定手順：</strong><br>
+        1. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--blue)">console.firebase.google.com</a> でプロジェクト作成<br>
+        2. 「ウェブアプリを追加」→ firebaseConfig をコピー<br>
+        3. Firestore Database を「テストモード」で有効化<br>
+        4. 上の3項目を貼り付けて「設定を保存」
+      </p>
+    </details>
+  </div>
+
+</div>
+
+  <!-- Firebase SDK (compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </body>
 </html>
