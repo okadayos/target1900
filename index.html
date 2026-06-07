@@ -349,10 +349,10 @@
       <button class="btn primary" onclick="applyRange()">適用</button>
     </div>
     <div class="quick-btns">
-      <button class="qb" onclick="setRange(1,100)">1〜100</button>
-      <button class="qb" onclick="setRange(1,200)">1〜200</button>
-      <button class="qb" onclick="setRange(1,300)">1〜300</button>
-      <button class="qb" onclick="setRange(1,500)">1〜500</button>
+      <button class="qb" onclick="setRange(1,800)">1〜800</button>
+      <button class="qb" onclick="setRange(1,1500)">1〜1500</button>
+      <button class="qb" onclick="setRange(801,1500)">801〜1500</button>
+      <button class="qb" onclick="setRange(1501,1900)">1501〜1900</button>
       <button class="qb" onclick="setRange(301,600)">301〜600</button>
       <button class="qb" onclick="setRange(601,900)">601〜900</button>
       <button class="qb" onclick="setRange(901,1200)">901〜1200</button>
@@ -405,7 +405,8 @@ function sm2(c, q) {
   return {interval:ni, rep:nr, ef:nef, due:NOW+ni*86400000, isNew:false};
 }
 
-function dueToday(id) { return getCard(id).due <= NOW + 3600000; }
+
+function dueToday(id) { return getCard(id).due <= NOW + 14400000; }
 function inRange(id)   { return id >= rangeFrom && id <= rangeTo; }
 function fmtDue(due)   {
   const d = Math.round((due-NOW)/86400000);
