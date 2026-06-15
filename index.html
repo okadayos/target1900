@@ -362,6 +362,19 @@
     </div>
   </div>
   <p class="range-note">※ 範囲を変更すると学習キューがリセットされます。復習スケジュールはこのブラウザ上に保存されます。</p>
+  <div class="range-card" style="margin-top: 20px;">
+    <div class="range-title">💾 データのバックアップと復元</div>
+    <div class="quick-btns" style="gap: 10px;">
+      <button class="btn" onclick="exportData()">⬇️ ファイルに保存（エクスポート）</button>
+      <label class="btn" style="cursor: pointer; margin: 4px;">
+        ⬆️ ファイルから復元（インポート）
+        <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+      </label>
+    </div>
+    <p class="range-note" style="margin-top:8px;">
+      ※現在の学習進捗をファイル（.json）として保存・読み込みします。機種変更時や手動バックアップにお使いください。
+    </p>
+  </div>
 </div>
 
 <!-- 単語一覧ビュー -->
