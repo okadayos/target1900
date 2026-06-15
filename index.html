@@ -658,6 +658,56 @@ document.addEventListener('keydown', function(e) {
   }
 });
 /* ========================= */
+ /* ========================= */
+</script>
+</body>
+</html>
+/* ===== データエクスポート (保存) ===== */
+function exportData() {
+  const dataStr = JSON.stringify(SRS, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  
+  // 今日の日付をファイル名にする (例: t1900_backup_20240501.json)
+  const d = new Date();
+  const dateStr = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  
+  a.href = url;
+  a.download = 't1900_backup_' + dateStr + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ===== データインポート (復元) ===== */
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if (typeof importedData === 'object' && importedData !== null) {
+        if (confirm('現在の学習データが上書きされます。復元してもよろしいですか？')) {
+          SRS = importedData;
+          saveSRS(SRS);
+          updateStats();
+          initQueue();
+          alert('データの復元が完了しました！');
+          switchView('study'); // 学習画面に戻る
+        }
+      } else {
+        alert('無効なデータ形式です。');
+      }
+    } catch(err) {
+      alert('ファイルの読み込みに失敗しました。正しいバックアップファイルか確認してください。');
+    }
+    // 同じファイルを連続で選べるようにinputをリセット
+    event.target.value = ''; 
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
