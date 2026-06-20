@@ -411,7 +411,6 @@ const WORDS = [
 const MY_NOTES = {
   
 // 自分だけのノートデータ（IDで紐付け）
-const MY_NOTES = {
  
   4:  { phrase: "mean that...", meaning: "…ということを意味する", en: "This means that we have to hurry.", ja: "これは、私たちが急がなければならないということを意味する。" },
   7:  { phrase: "consider A (to be) B", meaning: "AをBと見なす", en: "I consider him (to be) a genius.", ja: "私は彼を天才と見なしている。" },
@@ -680,7 +679,7 @@ function showCard(w) {
     phraseBox.style.display = 'block';
   } else {
     phraseBox.style.display = 'none';
-   
+     } 
   document.getElementById('grade-row').style.display = 'none';
   document.getElementById('c-no').textContent     = w[0]+'番';
   document.getElementById('c-part').textContent   = w[2];
