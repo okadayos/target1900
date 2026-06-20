@@ -461,6 +461,29 @@ function showCard(w) {
   document.getElementById('c-part-b').textContent = w[2];
   document.getElementById('c-word-b').textContent = w[1];
   document.getElementById('c-mean').textContent   = w[3];
+ 
+   const meanEl = document.getElementById('c-mean');
+  const rawMean = w[3];
+  
+  if (rawMean.includes('TG:')) {
+    inner.classList.add('is-tg'); // ラベンダー色のクラスを適用
+    
+    // 「TG:」で文字を切り分けてきれいに配置
+    const parts = rawMean.split('TG:');
+    const mainMean = parts[0];
+    const tgPart = parts[1];
+    
+    meanEl.innerHTML = `
+      <div style="font-weight:600; font-size:18px;">${mainMean}</div>
+      <div class="tg-badge-box">
+        <span class="tg-badge-label">🔑 関連熟語表現</span>
+        <div class="tg-badge-text">${tgPart}</div>
+      </div>
+    `;
+  } else {
+    inner.classList.remove('is-tg'); // 通常の白（または黒）背景に戻す
+    meanEl.textContent = rawMean;    // 通常表示
+  }
   // 🌟【変更】実際の計算に基づいた正しい日数を表示する
   const currentCard = getCard(w[0]);
   const calcDays = (q) => {
