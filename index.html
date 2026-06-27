@@ -262,6 +262,26 @@
   }
   .toggle-switch input:checked + .toggle-slider { background: var(--blue); }
   .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+ .card-tg-front {
+    display: none; /* 通常は非表示 */
+    font-size: 13px;
+    color: var(--blue-text);
+    background: var(--blue-bg);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  @media (prefers-color-scheme: dark) {
+    .card-tg-front {
+      color: #93c5fd;
+      background: #1e3a8a;
+      border-color: rgba(147, 197, 253, 0.2);
+    }
+  }
 </style>
 </head>
 <body>
@@ -301,7 +321,8 @@
           <span class="card-no" id="c-no"></span>
           <span class="card-part" id="c-part"></span>
           <div class="card-word" id="c-word"></div>
-          <div class="card-hint">👆 タップして答えを確認</div>
+            <div class="card-tg-front" id="c-tg-front"></div> 
+         <div class="card-hint">👆 タップして答えを確認</div>
           <button class="speak-btn" id="speak-btn" onclick="speakWord(event)">🔊 もう一度聞く</button>
         </div>
         <div class="card-face back">
@@ -462,17 +483,25 @@ function showCard(w) {
   document.getElementById('c-word-b').textContent = w[1];
   document.getElementById('c-mean').textContent   = w[3];
  
-   const meanEl = document.getElementById('c-mean');
+   // ーーー 🌟【改良】表面・裏面のTG表示処理 ーーー
+  const meanEl = document.getElementById('c-mean');
+  const tgFrontEl = document.getElementById('c-tg-front');
   const rawMean = w[3];
   
   if (rawMean.includes('TG:')) {
-    inner.classList.add('is-tg'); // ラベンダー色のクラスを適用
+    inner.classList.add('is-tg'); // 裏面用のラベンダー背景
     
-    // 「TG:」で文字を切り分けてきれいに配置
+    // 「TG:」以降を分解
     const parts = rawMean.split('TG:');
     const mainMean = parts[0];
-    const tgPart = parts[1];
+    const tgPart = parts[1]; // 例: "mean that...「…ということを意味する」"
     
+    // 日本語の「「」より前の英語部分だけを抽出して表面に表示
+    const tgPhrase = tgPart.split('「')[0].trim();
+    tgFrontEl.textContent = "🔑 " + tgPhrase;
+    tgFrontEl.style.display = "inline-block"; // 表面に英語フレーズを表示！
+    
+    // 裏面は従来通り日本語訳付きで表示
     meanEl.innerHTML = `
       <div style="font-weight:600; font-size:18px;">${mainMean}</div>
       <div class="tg-badge-box">
@@ -481,8 +510,9 @@ function showCard(w) {
       </div>
     `;
   } else {
-    inner.classList.remove('is-tg'); // 通常の白（または黒）背景に戻す
-    meanEl.textContent = rawMean;    // 通常表示
+    inner.classList.remove('is-tg'); 
+    tgFrontEl.style.display = "none"; // TGがない場合は表面は非表示
+    meanEl.textContent = rawMean;
   }
   // 🌟【変更】実際の計算に基づいた正しい日数を表示する
   const currentCard = getCard(w[0]);
