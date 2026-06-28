@@ -239,15 +239,26 @@
     line-height: 1.6;
   }
   /* 自動発音トグル */
-  .auto-speak-wrap {
+  /* 🌟 既存の .auto-speak-wrap を削除し、以下を追加 */
+  .study-options {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 14px;
+    margin-bottom: 12px;
     font-size: 12px;
     color: var(--text2);
     user-select: none;
+  }
+  .option-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* 🌟 番号を隠すトグルがONの時、カード内の番号を完全に消す */
+  .hide-numbers .card-no {
+    display: none !important;
   }
   .toggle-switch { position: relative; width: 36px; height: 20px; cursor: pointer; }
   .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -306,13 +317,22 @@
     <div class="stat"><div class="n" id="s-total">0</div><div class="l">範囲内</div></div>
   </div>
   <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
-
-  <div class="auto-speak-wrap">
-    <span>表示時に自動発音</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="auto-speak-toggle" checked>
-      <span class="toggle-slider"></span>
-    </label>
+<!-- 🌟 既存の自動発音トグルを、以下の2つ並びの設定エリアに置き換えます -->
+  <div class="study-options">
+    <div class="option-item">
+      <span>自動発音</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="auto-speak-toggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="option-item">
+      <span>番号を隠す</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="hide-no-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
   </div>
   <div id="card-area">
     <div class="card-scene" onclick="flipCard()">
