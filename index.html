@@ -838,6 +838,28 @@ function importData(event) {
   };
   reader.readAsText(file);
 }
+ /* ===== 単語番号隠しトグルの制御 ===== */
+const hideNoToggle = document.getElementById('hide-no-toggle');
+const cardArea = document.getElementById('card-area');
+
+if (hideNoToggle && cardArea) {
+  // トグルが切り替わった時に番号表示をON/OFFする
+  hideNoToggle.addEventListener('change', function(e) {
+    if (e.target.checked) {
+      cardArea.classList.add('hide-numbers');
+      localStorage.setItem('t1900_hide_no', 'true'); // 設定を保存
+    } else {
+      cardArea.classList.remove('hide-numbers');
+      localStorage.removeItem('t1900_hide_no'); // 設定をクリア
+    }
+  });
+
+  // ページを開いた時に保存された設定があれば自動適用する
+  if (localStorage.getItem('t1900_hide_no') === 'true') {
+    hideNoToggle.checked = true;
+    cardArea.classList.add('hide-numbers');
+  }
+}
 </script>
 </body>
 </html>
