@@ -348,6 +348,12 @@
     line-height: 1.4;
     font-weight: 500;
   }
+ /* 🌟音声のみモードONの時、めくる前のスペルとTGを透明にする */
+  .audio-only .front #c-word,
+  .audio-only .front #c-tg-front {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -385,6 +391,14 @@
       <span>番号を隠す</span>
       <label class="toggle-switch">
         <input type="checkbox" id="hide-no-toggle">
+        <span class="toggle-slider"></span>
+          </label>
+    </div>
+    <!-- 🌟 ここに「音声のみ」トグルを追加 🌟 -->
+    <div class="option-item">
+      <span>音声のみ</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="audio-only-toggle">
         <span class="toggle-slider"></span>
       </label>
     </div>
@@ -606,10 +620,11 @@ function showCard(w) {
   document.getElementById('g-good').textContent   = calcDays(2);
   document.getElementById('g-easy').textContent   = calcDays(3);
   stopSpeech();
-  if (document.getElementById('auto-speak-toggle').checked) {
-    setTimeout(function() { speakWord(null); }, 200);
-  }
-}
+      // 🌟 自動発音、または「音声のみ」トグルがONの場合に発音させる
+      if (document.getElementById('auto-speak-toggle').checked || document.getElementById('audio-only-toggle').checked) {
+        setTimeout(function() { speakWord(null); }, 200);
+      }
+    } 
 
 function flipCard() {
   if (isFlipped) return;
@@ -858,6 +873,27 @@ if (hideNoToggle && cardArea) {
   if (localStorage.getItem('t1900_hide_no') === 'true') {
     hideNoToggle.checked = true;
     cardArea.classList.add('hide-numbers');
+  }
+}
+ 
+ /* ===== 音声のみトグルの制御 ===== */
+const audioOnlyToggle = document.getElementById('audio-only-toggle');
+
+if (audioOnlyToggle && cardArea) {
+  audioOnlyToggle.addEventListener('change', function(e) {
+    if (e.target.checked) {
+      cardArea.classList.add('audio-only');
+      localStorage.setItem('t1900_audio_only', 'true');
+    } else {
+      cardArea.classList.remove('audio-only');
+      localStorage.removeItem('t1900_audio_only');
+    }
+  });
+
+  // 設定の自動復元
+  if (localStorage.getItem('t1900_audio_only') === 'true') {
+    audioOnlyToggle.checked = true;
+    cardArea.classList.add('audio-only');
   }
 }
 </script>
