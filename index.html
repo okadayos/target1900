@@ -705,8 +705,7 @@ function switchView(v) {
   if (v === 'list') renderList('');
 }
 
-function renderList(q) {
-  let listFilter = 'all';
+let listFilter = 'all';
 
 function setFilter(f, btn) {
   listFilter = f;
@@ -732,13 +731,13 @@ function renderList(q) {
     // フィルターの条件による絞り込み
     if (listFilter === 'new' && !c.isNew) return false;
     if (listFilter === 'today' && !dueToday(w[0])) return false;
-    // 🌟 EF値（覚えやすさ）が初期値から下がったものを「苦手」と判定
+    // EF値（覚えやすさ）が初期値から下がったものを「苦手」と判定
     if (listFilter === 'hard' && c.ef >= 2.4) return false; 
     
     return true;
   });
 
-  // 🌟 苦手の時は、一番EF値が低い（深刻な）順に並べ替える
+  // 苦手の時は、一番EF値が低い（深刻な）順に並べ替える
   if (listFilter === 'hard') {
     words.sort((a, b) => getCard(a[0]).ef - getCard(b[0]).ef);
   }
