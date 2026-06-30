@@ -354,6 +354,12 @@
     opacity: 0 !important;
     pointer-events: none;
   }
+ /* 🌟 追加: 一覧フィルター用の選択中スタイル */
+  .quick-btns .qb.active {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
 </style>
 </head>
 <body>
@@ -485,10 +491,18 @@
     </p>
   </div>
 </div>
-
 <!-- 単語一覧ビュー -->
 <div id="list-view" class="container" style="display:none">
   <input class="list-search" type="text" placeholder="単語・意味で検索..." oninput="renderList(this.value)" id="list-input">
+  
+  <!-- 🌟 ここにフィルターボタンを追加 -->
+  <div class="quick-btns" id="list-filters" style="margin-bottom: 10px;">
+    <button class="qb active" onclick="setFilter('all', this)">すべて</button>
+    <button class="qb" onclick="setFilter('new', this)">未学習</button>
+    <button class="qb" onclick="setFilter('today', this)">今日の予定</button>
+    <button class="qb" onclick="setFilter('hard', this)">⚠️ 苦手</button>
+  </div>
+
   <div class="list-items" id="list-cont"></div>
 </div>
 <script>
@@ -692,9 +706,43 @@ function switchView(v) {
 }
 
 function renderList(q) {
+  let listFilter = 'all';
+
+function setFilter(f, btn) {
+  listFilter = f;
+  // ボタンの色（アクティブ状態）を切り替える
+  const btns = document.getElementById('list-filters').getElementsByTagName('button');
+  for (let b of btns) b.classList.remove('active');
+  btn.classList.add('active');
+  
+  // 現在入力されている検索ワードを引き継いだまま再描画
+  renderList(document.getElementById('list-input').value);
+}
+
+function renderList(q) {
   const cont = document.getElementById('list-cont');
   cont.innerHTML = '';
-  const words = WORDS.filter(w => inRange(w[0]) && (!q || w[1].toLowerCase().includes(q.toLowerCase()) || w[3].includes(q)));
+  
+  let words = WORDS.filter(w => {
+    // 範囲外や検索ワードに合わないものを除外
+    if (!inRange(w[0])) return false;
+    if (q && !w[1].toLowerCase().includes(q.toLowerCase()) && !w[3].includes(q)) return false;
+    
+    const c = getCard(w[0]);
+    // フィルターの条件による絞り込み
+    if (listFilter === 'new' && !c.isNew) return false;
+    if (listFilter === 'today' && !dueToday(w[0])) return false;
+    // 🌟 EF値（覚えやすさ）が初期値から下がったものを「苦手」と判定
+    if (listFilter === 'hard' && c.ef >= 2.4) return false; 
+    
+    return true;
+  });
+
+  // 🌟 苦手の時は、一番EF値が低い（深刻な）順に並べ替える
+  if (listFilter === 'hard') {
+    words.sort((a, b) => getCard(a[0]).ef - getCard(b[0]).ef);
+  }
+
   words.slice(0, 300).forEach(w => {
     const c  = getCard(w[0]);
     const dc = c.isNew ? 'd-new' : (dueToday(w[0]) ? 'd-today' : 'd-future');
@@ -704,10 +752,16 @@ function renderList(q) {
     el.innerHTML = `<span class="li-no">${w[0]}</span><span class="li-w">${w[1]}</span><span class="li-m">${w[3]}</span><span class="li-due ${dc}">${dl}</span>`;
     cont.appendChild(el);
   });
+  
   if (words.length > 300) {
     const p = document.createElement('p');
     p.className = 'list-more';
-    p.textContent = `検索して絞り込んでください（${words.length}件中300件表示）`;
+    p.textContent = `検索・フィルターで絞り込んでください（${words.length}件中300件表示）`;
+    cont.appendChild(p);
+  } else if (words.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'list-more';
+    p.textContent = `該当する単語がありません。`;
     cont.appendChild(p);
   }
 }
