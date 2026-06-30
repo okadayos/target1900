@@ -474,6 +474,14 @@
       <button class="qb" onclick="setRange(1201,1500)">1201〜1500</button>
       <button class="qb" onclick="setRange(1501,1900)">1501〜1900</button>
       <button class="qb" onclick="setRange(1,1900)">全範囲</button>
+  
+    </div>
+   <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+        <input type="checkbox" id="hard-mode-toggle" style="width: 16px; height: 16px;" onchange="applyRange()">
+        ⚠️ 苦手な単語（過去に間違えた単語）だけを特訓する
+      </label>
+      <p class="range-note" style="margin-top: 6px;">※チェックを入れると、指定範囲内で過去に「難しい」「もう一度」を押した単語だけが、本来の復習予定日に関わらず強制出題されます。</p>
     </div>
   </div>
   <p class="range-note">※ 範囲を変更すると学習キューがリセットされます。復習スケジュールはこのブラウザ上に保存されます。</p>
@@ -557,22 +565,52 @@ function fmtDue(due)   {
 }
 
 function initQueue() {
-  queue = WORDS.filter(w => inRange(w[0]) && dueToday(w[0]));
-  queue.sort(() => Math.random()-0.5);
+  const isHardMode = document.getElementById('hard-mode-toggle') ? document.getElementById('hard-mode-toggle').checked : false;
+  
+  queue = WORDS.filter(w => {
+    if (!inRange(w[0])) return false;
+    
+    if (isHardMode) {
+      // 🌟特訓モード：EF値（覚えやすさ）が下がっている単語を期日無視で出題
+      const c = getCard(w[0]);
+      return !c.isNew && c.ef < 2.4; 
+    } else {
+      // 通常モード：今日の予定に入っている単語
+      return dueToday(w[0]);
+    }
+  });
+  
+  queue.sort(() => Math.random() - 0.5);
   curIdx = 0; doneCount = 0;
   updateStats();
 }
 
 function updateStats() {
-  const due   = WORDS.filter(w => inRange(w[0]) && dueToday(w[0])).length;
+  const isHardMode = document.getElementById('hard-mode-toggle') ? document.getElementById('hard-mode-toggle').checked : false;
+
+  const due = WORDS.filter(w => {
+    if (!inRange(w[0])) return false;
+    if (isHardMode) {
+      const c = getCard(w[0]);
+      return !c.isNew && c.ef < 2.4;
+    }
+    return dueToday(w[0]);
+  }).length;
+
   const newW  = WORDS.filter(w => inRange(w[0]) && getCard(w[0]).isNew).length;
   const total = WORDS.filter(w => inRange(w[0])).length;
+
   document.getElementById('s-due').textContent   = due;
   document.getElementById('s-done').textContent  = doneCount;
   document.getElementById('s-new').textContent   = newW;
   document.getElementById('s-total').textContent = total;
+
   const pct = queue.length > 0 ? Math.round(doneCount/queue.length*100) : (doneCount>0?100:0);
-  document.getElementById('prog').style.width = Math.min(pct,100)+'%';
+  document.getElementById('prog').style.width = Math.min(pct, 100) + '%';
+  
+  // 🌟 特訓モード中は「今日の予定」のラベルを「特訓対象」に変更する
+  const sDueLabel = document.getElementById('s-due').nextElementSibling;
+  if (sDueLabel) sDueLabel.textContent = isHardMode ? '特訓対象' : '今日の予定';
 }
 
 function showCard(w) {
